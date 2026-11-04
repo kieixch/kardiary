@@ -579,11 +579,7 @@ function EntryPageInner() {
     if (!editing || !form || !dirty) return;
     const draft: LocalDraft = { savedAt: new Date().toISOString(), form };
     void idbSet(draftKey(dateKey, form.id ?? null), draft);
-    const timer = window.setTimeout(() => {
-      void saveForm(false);
-    }, 1200);
-    return () => window.clearTimeout(timer);
-  }, [form, editing, dirty, dateKey, saveForm]);
+  }, [form, editing, dirty, dateKey]);
 
   async function finishEditing() {
     const current = formRef.current;
@@ -681,6 +677,7 @@ function EntryPageInner() {
     try {
       await api.deleteEntry(entry.id);
       await idbDelete(draftKey(dateKey, entry.id));
+      setDeleteOpen(false);
       toast.success(t("entryDeleted"));
       const remaining = dayEntries.filter((item) => item.id !== entry.id);
       router.push(
