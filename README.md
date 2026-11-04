@@ -61,7 +61,7 @@ DIRECT_URL="postgresql://USER:PASSWORD@HOST.REGION.aws.neon.tech/neondb?sslmode=
 
 1. Buat bucket R2.
 2. Buat API token dengan izin Object Read & Write untuk bucket tersebut.
-3. Catat account ID, access key ID, secret access key, dan nama bucket.
+3. Catat account ID 32 karakter (bukan URL dashboard), access key ID, secret access key, dan nama bucket.
 4. Bucket tidak perlu dibuka ke publik; gambar disajikan lewat API KARDIARY yang sudah diproteksi login.
 
 Environment yang dibutuhkan:
@@ -212,7 +212,7 @@ npx prisma migrate deploy
 
 **Foto gagal diunggah di Vercel**
 
-Pastikan `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, dan `R2_BUCKET` sudah diisi, API token memiliki izin Object Read & Write, dan nama bucket benar. Ukuran foto maksimal 10 MB dengan format JPEG, PNG, WEBP, atau GIF.
+Pastikan `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, dan `R2_BUCKET` sudah diisi, API token memiliki izin Object Read & Write, dan nama bucket benar. Gunakan account ID 32 karakter, bukan URL dashboard. Foto besar dikompres otomatis di browser agar aman terhadap batas body Vercel; ukuran maksimal 10 MB dengan format JPEG, PNG, WEBP, atau GIF.
 
 **Login berulang atau cookie tidak tersimpan**
 

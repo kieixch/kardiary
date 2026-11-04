@@ -21,6 +21,73 @@ export class ApiError extends Error {
   }
 }
 
+const VERCEL_SAFE_UPLOAD_BYTES = 3.5 * 1024 * 1024;
+
+function withExtension(name: string, extension: string): string {
+  const base = name.replace(/\.[^./\\]+$/, "").trim() || "image";
+  return `${base}.${extension}`;
+}
+
+function extensionForType(type: string): string {
+  if (type === "image/jpeg") return "jpg";
+  if (type === "image/png") return "png";
+  if (type === "image/gif") return "gif";
+  return "webp";
+}
+
+function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob | null> {
+  return new Promise((resolve) => canvas.toBlob(resolve, type, quality));
+}
+
+async function optimizeImageForUpload(file: File): Promise<File> {
+  if (typeof document === "undefined") return file;
+  if (file.size <= VERCEL_SAFE_UPLOAD_BYTES) return file;
+  if (!file.type.startsWith("image/") || file.type === "image/gif") return file;
+
+  let bitmap: ImageBitmap | null = null;
+  try {
+    bitmap = await createImageBitmap(file);
+    const longestSide = Math.max(bitmap.width, bitmap.height);
+    let smallest: Blob | null = null;
+
+    for (const maxDimension of [2560, 1920, 1440, 1080]) {
+      const scale = Math.min(1, maxDimension / longestSide);
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+      canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+      const context = canvas.getContext("2d");
+      if (!context) return file;
+      context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+
+      for (const quality of [0.86, 0.74, 0.62]) {
+        const blob = await canvasToBlob(canvas, "image/webp", quality);
+        if (!blob) continue;
+        if (!smallest || blob.size < smallest.size) smallest = blob;
+        if (blob.size <= VERCEL_SAFE_UPLOAD_BYTES) {
+          const type = blob.type || "image/webp";
+          return new File([blob], withExtension(file.name, extensionForType(type)), {
+            type,
+            lastModified: file.lastModified,
+          });
+        }
+      }
+    }
+
+    if (smallest && smallest.size < file.size) {
+      const type = smallest.type || "image/webp";
+      return new File([smallest], withExtension(file.name, extensionForType(type)), {
+        type,
+        lastModified: file.lastModified,
+      });
+    }
+    return file;
+  } catch {
+    return file;
+  } finally {
+    bitmap?.close();
+  }
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);
   if (init?.body && !(init.body instanceof FormData)) {
@@ -163,7 +230,7 @@ export const api = {
   },
   async uploadImage(file: File, purpose: "entry" | "background" = "entry") {
     const formData = new FormData();
-    formData.set("file", file);
+    formData.set("file", await optimizeImageForUpload(file));
     formData.set("purpose", purpose);
     return request<{ image: EntryDetail["images"][number] }>("/api/uploads", {
       method: "POST",

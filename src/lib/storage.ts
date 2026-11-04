@@ -9,6 +9,7 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 import sharp, { type Metadata } from "sharp";
+import { HttpError } from "@/lib/http";
 
 export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 export const UPLOAD_ROOT = process.env.KARDIARY_UPLOAD_DIR
@@ -31,15 +32,29 @@ interface R2Config {
 
 let r2Client: S3Client | null = null;
 
+function readEnv(name: string): string | null {
+  const raw = process.env[name]?.trim();
+  if (!raw) return null;
+  return raw.replace(/^(['"])(.*)\1$/, "$2").trim() || null;
+}
+
+function normalizeR2AccountId(value: string | null): string | null {
+  if (!value) return null;
+  return value.match(/[a-f0-9]{32}/i)?.[0] ?? null;
+}
+
 function getR2Config(): R2Config | null {
-  const accountId = process.env.R2_ACCOUNT_ID?.trim();
-  const accessKeyId = process.env.R2_ACCESS_KEY_ID?.trim();
-  const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY?.trim();
-  const bucket = process.env.R2_BUCKET?.trim();
-  if (!accountId || !accessKeyId || !secretAccessKey || !bucket) return null;
+  const accountId = normalizeR2AccountId(readEnv("R2_ACCOUNT_ID"));
+  const endpointOverride = readEnv("R2_ENDPOINT");
+  const accessKeyId = readEnv("R2_ACCESS_KEY_ID");
+  const secretAccessKey = readEnv("R2_SECRET_ACCESS_KEY");
+  const bucket = readEnv("R2_BUCKET");
+  const endpoint =
+    endpointOverride ?? (accountId ? `https://${accountId}.r2.cloudflarestorage.com` : null);
+  if (!endpoint || !accessKeyId || !secretAccessKey || !bucket) return null;
 
   return {
-    endpoint: process.env.R2_ENDPOINT?.trim() || `https://${accountId}.r2.cloudflarestorage.com`,
+    endpoint,
     accessKeyId,
     secretAccessKey,
     bucket,
@@ -53,8 +68,10 @@ export function isObjectStorageEnabled(): boolean {
 function assertStorageReady(): void {
   if (isObjectStorageEnabled()) return;
   if (process.env.VERCEL) {
-    throw new Error(
+    throw new HttpError(
+      503,
       "Cloudflare R2 storage is not configured. Set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, and R2_BUCKET.",
+      "STORAGE_NOT_CONFIGURED",
     );
   }
 }
@@ -179,15 +196,24 @@ export async function saveImageBuffer(buffer: Buffer, originalFilename: string):
 
   const config = getR2Config();
   if (config) {
-    await getR2Client(config).send(
-      new PutObjectCommand({
-        Bucket: config.bucket,
-        Key: relativePath,
-        Body: buffer,
-        ContentType: info.mime,
-        CacheControl: "private, max-age=31536000, immutable",
-      }),
-    );
+    try {
+      await getR2Client(config).send(
+        new PutObjectCommand({
+          Bucket: config.bucket,
+          Key: relativePath,
+          Body: buffer,
+          ContentType: info.mime,
+          CacheControl: "private, max-age=31536000, immutable",
+        }),
+      );
+    } catch (error) {
+      console.error("[kardiary] R2 upload failed", error);
+      throw new HttpError(
+        502,
+        "Cloudflare R2 upload failed. Check the R2 credentials, bucket name, and permissions.",
+        "R2_UPLOAD_FAILED",
+      );
+    }
   } else {
     const absolutePath = resolveStoragePath(relativePath);
     await mkdir(path.dirname(absolutePath), { recursive: true });
