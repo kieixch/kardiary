@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("LOCAL_DATABASE_URL")
+}
+
+model DiaryEntry {
+  id          String   @id @default(cuid())
+  dateKey     String
+  time        String   @default("12:00")
+  title       String?
+  content     String   @default("")
+  contentText String   @default("")
+  wordCount   Int      @default(0)
+  mood        String?
+  location    String?
+  weather     String?
+  highlights  String?
+  status      String   @default("published")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  images DiaryImage[]
+  tags   EntryTag[]
+
+  @@index([dateKey, time])
+  @@index([mood])
+  @@index([updatedAt])
+}
+
+model DiaryImage {
+  id               String   @id @default(cuid())
+  entryId          String?
+  entry            DiaryEntry? @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  storagePath      String
+  originalFilename String
+  mimeType         String
+  fileSize         Int
+  width            Int?
+  height           Int?
+  caption          String?
+  purpose          String   @default("entry")
+  sortOrder        Int      @default(0)
+  createdAt        DateTime @default(now())
+
+  @@index([entryId])
+  @@index([purpose])
+  @@index([createdAt])
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  color     String   @default("#8A9A7B")
+  createdAt DateTime @default(now())
+
+  entries EntryTag[]
+}
+
+model EntryTag {
+  entryId String
+  tagId   String
+  entry   DiaryEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  tag     Tag        @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([entryId, tagId])
+  @@index([tagId])
+}
+
+model DiarySettings {
+  id        String   @id @default("default")
+  data      String
+  locale    String   @default("id")
+  updatedAt DateTime @updatedAt
+}
