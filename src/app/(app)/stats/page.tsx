@@ -71,7 +71,7 @@ export default function StatsPage() {
   const topMood = findMood(settings.moods, stats?.topMood);
 
   return (
-    <div className="fade-up">
+    <div className="fade-up stats-page">
       <PageHeader
         eyebrow={t("navStats")}
         title={t("statsTitle")}
@@ -153,8 +153,8 @@ export default function StatsPage() {
             />
           </div>
 
-          <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
-            <div className="space-y-5">
+          <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
+            <div className="min-w-0 space-y-5">
               <section className="card p-5 sm:p-6">
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
                   <div>
@@ -163,26 +163,28 @@ export default function StatsPage() {
                   </div>
                   <span className="badge">{t("thisYear")}</span>
                 </div>
-                <div className="bar-chart">
-                  {months.map((month) => {
-                    const monthNumber = Number(month.key.slice(5, 7));
-                    const yearShort = month.key.slice(2, 4);
-                    const height = month.count === 0 ? 2 : Math.max(6, (month.count / maxMonth) * 100);
-                    return (
-                      <div key={month.key} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1">
-                        <span className="text-[0.58rem] font-medium text-[var(--muted)]">{month.count || ""}</span>
-                        <div
-                          className="bar w-full"
-                          style={{ height: `${height}%` }}
-                          title={`${month.key}: ${month.count} ${t("entries")}`}
-                        />
-                        <span className="text-[0.55rem] text-[var(--muted)]">
-                          {formatMonthShort(monthNumber - 1, locale)}
-                          <span className="hidden sm:inline"> &apos;{yearShort}</span>
-                        </span>
-                      </div>
-                    );
-                  })}
+                <div className="stat-chart-scroll">
+                  <div className="bar-chart">
+                    {months.map((month) => {
+                      const monthNumber = Number(month.key.slice(5, 7));
+                      const yearShort = month.key.slice(2, 4);
+                      const height = month.count === 0 ? 2 : Math.max(6, (month.count / maxMonth) * 100);
+                      return (
+                        <div key={month.key} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1">
+                          <span className="text-[0.58rem] font-medium text-[var(--muted)]">{month.count || ""}</span>
+                          <div
+                            className="bar w-full"
+                            style={{ height: `${height}%` }}
+                            title={`${month.key}: ${month.count} ${t("entries")}`}
+                          />
+                          <span className="text-[0.55rem] text-[var(--muted)]">
+                            {formatMonthShort(monthNumber - 1, locale)}
+                            <span className="hidden sm:inline"> &apos;{yearShort}</span>
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </section>
 
@@ -222,7 +224,7 @@ export default function StatsPage() {
               </section>
             </div>
 
-            <div className="space-y-5">
+            <div className="min-w-0 space-y-5">
               <section className="card p-5">
                 <h2 className="mb-4 font-serif text-lg font-semibold">{t("topTags")}</h2>
                 {stats.topTags.length === 0 ? (

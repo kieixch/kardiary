@@ -647,9 +647,19 @@ button {
 
 .cell-topline {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 4px;
+  position: relative;
+  z-index: 2;
+}
+
+.cell-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 16px;
+  margin-top: 2px;
   position: relative;
   z-index: 2;
 }
@@ -1181,7 +1191,20 @@ button {
   border-radius: var(--radius-sm);
 }
 
+.stats-page {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+  overflow-x: clip;
+}
+
+.stats-page > * {
+  min-width: 0;
+}
+
 .stat-card {
+  min-width: 0;
   padding: 18px;
   border-radius: var(--radius);
   border: 1px solid var(--border);
@@ -1347,6 +1370,20 @@ input[type="range"] {
 .year-month .year-month-count {
   font-size: 0.68rem;
   color: var(--muted);
+}
+
+.stat-chart-scroll {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.stat-chart-scroll .bar-chart {
+  min-width: 560px;
 }
 
 .bar-chart {

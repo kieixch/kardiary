@@ -331,13 +331,25 @@ export default function CalendarPage() {
                     >
                       <div className="cell-topline">
                         <span className="day-number">{day.getDate()}</span>
-                        {settings.calendar.showMood && mood ? (
-                          <span className="cell-mood" title={moodLabel(mood, locale)} aria-hidden>
-                            {mood.emoji}
-                          </span>
-                        ) : null}
-                        {count > 1 ? <span className="cell-count">{count}</span> : null}
                       </div>
+                      {(settings.calendar.showMood && mood) || count > 1 ? (
+                        <div className="cell-meta">
+                          {settings.calendar.showMood && mood ? (
+                            <span className="cell-mood" title={moodLabel(mood, locale)} aria-hidden>
+                              {mood.emoji}
+                            </span>
+                          ) : null}
+                          {count > 1 ? (
+                            <span
+                              className="cell-count"
+                              title={`${count} ${t("entries")}`}
+                              aria-label={`${count} ${t("entries")}`}
+                            >
+                              {count}
+                            </span>
+                          ) : null}
+                        </div>
+                      ) : null}
                       {image ? (
                         <span className="cell-thumb">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
