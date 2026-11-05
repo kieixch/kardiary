@@ -218,6 +218,11 @@ button {
   background: color-mix(in srgb, var(--primary) 10%, transparent);
 }
 
+[data-theme="dark"] .app-mobilebar,
+[data-theme="dark"] .mobile-bottomnav {
+  background: var(--surface);
+}
+
 @media (min-width: 900px) {
   .app-shell[data-nav="sidebar"] {
     display: flex;
@@ -461,6 +466,10 @@ button {
   padding: 9px 12px;
   font-size: 0.9rem;
   transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+.input.input-with-icon {
+  padding-left: 2.6rem;
 }
 
 .input::placeholder,

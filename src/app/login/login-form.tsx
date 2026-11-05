@@ -63,7 +63,7 @@ export function LoginForm({ nextPath }: { nextPath: string }) {
             <div className="relative">
               <LockKeyhole
                 size={15}
-                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)]"
+                className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--muted)]"
               />
               <input
                 id="password"
@@ -72,7 +72,7 @@ export function LoginForm({ nextPath }: { nextPath: string }) {
                 autoFocus
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                className="input pl-9"
+                className="input input-with-icon"
                 placeholder="Kata sandi KARDIARY"
                 disabled={pending}
               />

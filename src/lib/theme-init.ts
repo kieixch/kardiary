@@ -28,6 +28,7 @@ var map={
 "--selected":c.selected,"--selected-contrast":c.selectedText,"--today":c.today,"--danger":c.danger
 };
 for(var k in map)st.setProperty(k,map[k]);
+var meta=document.querySelector('meta[name="theme-color"]'); if(meta)meta.setAttribute("content",c.surface);
 st.setProperty("--font-body",f[0]); st.setProperty("--font-heading",f[1]);
 st.setProperty("--font-size-base",(t.baseSize||16)+"px");
 st.setProperty("--heading-scale",String(t.headingScale||1));

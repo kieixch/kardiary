@@ -757,6 +757,8 @@ export function applyAppearance(settings: AppearanceSettings, systemDark: boolea
   root.dataset.imageStyle = settings.imageStyle;
   root.dataset.indicator = settings.calendar.entryIndicator;
   root.style.colorScheme = resolveThemeMode(settings.mode, systemDark);
+  const themeColor = document.querySelector('meta[name="theme-color"]');
+  if (themeColor) themeColor.setAttribute("content", vars["--surface"]);
 }
 
 export function defaultSettingsForLocale(locale: Locale): AppearanceSettings {
